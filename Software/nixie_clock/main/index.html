@@ -1,0 +1,1997 @@
+<!DOCTYPE html>
+<html lang='zh-CN'>
+<head>
+    <meta charset='UTF-8'>
+    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+    <title>辉光管时钟控制面板</title>
+    <style>
+        :root {
+            --primary-color: #2196F3;
+            --success-color: #4CAF50;
+            --warning-color: #FF9800;
+            --danger-color: #F44336;
+            --bg-color: #f5f5f5;
+            --card-bg: #ffffff;
+            --text-color: #333333;
+            --border-color: #e0e0e0;
+        }
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            background: var(--bg-color);
+            color: var(--text-color);
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            background: var(--primary-color);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .header h1 {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+        
+        .header .status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--success-color);
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+        
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .card {
+            background: var(--card-bg);
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            transition: transform 0.2s;
+        }
+        
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        
+        .card h2 {
+            font-size: 18px;
+            margin-bottom: 15px;
+            color: var(--primary-color);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .info-row:last-child {
+            border-bottom: none;
+        }
+        
+        .info-label {
+            font-weight: 500;
+            color: #666;
+        }
+        
+        .info-value {
+            font-weight: 600;
+            color: var(--text-color);
+        }
+        
+        .progress-bar {
+            width: 100px;
+            height: 10px;
+            background: #e0e0e0;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: var(--success-color);
+            transition: width 0.3s;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 500;
+            color: #666;
+        }
+        
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+        
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+        
+        .password-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+        
+        .password-wrapper .info-value {
+            flex: 1;
+            margin-right: 30px;
+        }
+        
+        .password-toggle {
+            position: absolute;
+            right: 5px;
+            cursor: pointer;
+            color: #666;
+            user-select: none;
+            font-size: 16px;
+            padding: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        /* 时区选择器样式 */
+        #timezone-select {
+            font-family: monospace;
+            text-align: right;
+        }
+        
+        #timezone-select option {
+            text-align: right;
+        }
+        
+
+        
+        .network-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 10px;
+            margin: 2px 0;
+            border-radius: 3px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        
+        .network-item:hover {
+            background-color: var(--hover-color);
+        }
+        
+        .network-item.selected {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .network-ssid {
+            font-weight: 500;
+        }
+        
+        .network-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 12px;
+            color: #666;
+        }
+        
+        .network-item.selected .network-info {
+            color: rgba(255, 255, 255, 0.8);
+        }
+        
+        .signal-strength {
+            display: flex;
+            align-items: center;
+            gap: 3px;
+        }
+        
+        .signal-bar {
+            width: 3px;
+            background-color: #ddd;
+            border-radius: 1px;
+        }
+        
+        .signal-bar.active {
+            background-color: #4CAF50;
+        }
+        
+        .security-icon {
+            font-size: 14px;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .btn-primary {
+            background: var(--primary-color);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #1976D2;
+        }
+        
+        .btn-success {
+            background: var(--success-color);
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background: #45a049;
+        }
+        
+        .btn-danger {
+            background: var(--danger-color);
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background: #da190b;
+        }
+        
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+        }
+        
+        input[type="number"] {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            background-color: var(--card-bg);
+            color: var(--text-color);
+            font-size: 14px;
+        }
+        
+        input[type="number"]:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+        
+        input[type="number"]:invalid {
+            border-color: var(--danger-color);
+        }
+        
+        select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid var(--border-color);
+            border-radius: 5px;
+            background-color: var(--card-bg);
+            color: var(--text-color);
+            font-size: 14px;
+        }
+        
+        select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+        
+        .btn-secondary {
+            background-color: #6c757d;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.3s;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #5a6268;
+        }
+        
+        .alert {
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+        }
+        
+        .modal-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            max-width: 400px;
+            width: 90%;
+        }
+        
+        .modal-header {
+            margin-bottom: 20px;
+        }
+        
+        .modal-footer {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+        
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .container {
+                padding: 10px;
+            }
+            
+            .header h1 {
+                font-size: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class='container'>
+        <div class='header'>
+            <h1>辉光管时钟控制面板</h1>
+            <div class='status'>
+                <div class='status-dot'></div>
+                <span id='system-status'>系统运行中</span>
+            </div>
+        </div>
+        
+        <div id='alert' class='alert'></div>
+        
+        <div class='grid'>
+            <!-- 时间信息 -->
+            <div class='card'>
+                <h2>⏰ 时间信息</h2>
+                <div class='info-row'>
+                    <span class='info-label'>当前RTC时间</span>
+                    <span class='info-value' id='rtc-time'>--:--:--</span>
+                </div>
+                <div class='info-row'>
+                    <span class='info-label'>上次校准时间</span>
+                    <span class='info-value' id='last-calibration'>从未校准</span>
+                </div>
+                <div class='info-row'>
+                    <span class='info-label'>NTP服务器</span>
+                    <span class='info-value' id='ntp-server'>ntp.ntsc.ac.cn</span>
+                </div>
+                <div class='info-row'>
+                    <span class='info-label'>运行时间</span>
+                    <span class='info-value' id='runtime'>0000H00M</span>
+                </div>
+                <div class='info-row'>
+                    <span class='info-label'>当前时区</span>
+                    <span class='info-value' id='timezone'>Asia/Shanghai (+8)</span>
+                </div>
+                <div class='info-row'>
+                    <span class='info-label'>BMP580温度</span>
+                    <span class='info-value' id='bmp580-temperature'>--°C</span>
+                </div>
+                <div class='info-row'>
+                    <span class='info-label'>BMP580气压</span>
+                    <span class='info-value' id='bmp580-pressure'>--hPa</span>
+                </div>
+                <div class='info-row'>
+                    <span class='info-label'>AHT20温度</span>
+                    <span class='info-value' id='aht20-temperature'>--°C</span>
+                </div>
+                <div class='info-row'>
+                    <span class='info-label'>AHT20湿度</span>
+                    <span class='info-value' id='aht20-humidity'>--%</span>
+                </div>
+            </div>
+            
+            <!-- 系统状态 -->
+            <div class='card'>
+                <h2>📊 系统状态</h2>
+                <div class='info-row'>
+                    <span class='info-label'>电量</span>
+                    <div style='display: flex; align-items: center; gap: 10px;'>
+                        <div class='progress-bar'>
+                            <div class='progress-fill' id='battery-progress' style='width: 0%'></div>
+                        </div>
+                        <span class='info-value' id='battery-percent'>0%</span>
+                    </div>
+                </div>
+                <div class='info-row'>
+                    <span class='info-label'>电池电压</span>
+                    <span class='info-value' id='battery-voltage'>0.0V</span>
+                </div>
+                <div class='info-row'>
+                    <span class='info-label'>电池电流</span>
+                    <span class='info-value' id='battery-current'>0mA</span>
+                </div>
+                <div class='info-row'>
+                    <span class='info-label'>CPU使用率</span>
+                    <div style='display: flex; align-items: center; gap: 10px;'>
+                        <div class='progress-bar'>
+                            <div class='progress-fill' id='cpu-progress' style='width: 0%'></div>
+                        </div>
+                        <span class='info-value' id='cpu-usage'>0%</span>
+                    </div>
+                </div>
+                <div class='info-row'>
+                    <span class='info-label'>内存使用率</span>
+                    <div style='display: flex; align-items: center; gap: 10px;'>
+                        <div class='progress-bar'>
+                            <div class='progress-fill' id='memory-progress' style='width: 0%'></div>
+                        </div>
+                        <span class='info-value' id='memory-usage'>0%</span>
+                    </div>
+                </div>
+                <div class='info-row'>
+                    <span class='info-label'>Flash使用率</span>
+                    <div style='display: flex; align-items: center; gap: 10px;'>
+                        <div class='progress-bar'>
+                            <div class='progress-fill' id='flash-progress' style='width: 0%'></div>
+                        </div>
+                        <span class='info-value' id='flash-usage'>0%</span>
+                    </div>
+                </div>
+                <div class='info-row'>
+                    <span class='info-label'>当前显示</span>
+                    <span class='info-value' id='current-display-content'>时间</span>
+                </div>
+                <div class='info-row'>
+                    <span class='info-label'>刷新率</span>
+                    <span class='info-value' id='current-refresh-rate'>1Hz (1次/秒)</span>
+                </div>
+            </div>
+            
+            <!-- 网络信息 -->
+            <div class='card'>
+                <h2>🌐 网络信息</h2>
+                <div class='info-row'>
+                    <span class='info-label'>AP名称</span>
+                    <span class='info-value' id='ap-ssid'>NixieClock</span>
+                </div>
+                <div class='info-row'>
+                    <span class='info-label'>AP密码</span>
+                    <div class='password-wrapper'>
+                        <span class='info-value' id='ap-password' data-hidden='true'>********</span>
+                        <span class='password-toggle' onclick='togglePassword("ap-password")'>👁️</span>
+                    </div>
+                </div>
+                <div class='info-row'>
+                    <span class='info-label'>AP IP地址</span>
+                    <span class='info-value' id='ap-ip'>192.168.4.1</span>
+                </div>
+                <div class='info-row'>
+                    <span class='info-label'>AP网关</span>
+                    <span class='info-value' id='ap-gateway'>192.168.4.1</span>
+                </div>
+                <div class='info-row'>
+                    <span class='info-label'>WiFi连接</span>
+                    <span class='info-value' id='wifi-ssid'>未连接</span>
+                </div>
+                <div class='info-row'>
+                    <span class='info-label'>IP地址</span>
+                    <span class='info-value' id='sta-ip'>--</span>
+                </div>
+            </div>
+            
+            <!-- WiFi配置 -->
+            <div class='card'>
+                <h2>📡 WiFi配置</h2>
+                
+                <div class='form-group'>
+                    <label style='display: flex; align-items: center; gap: 10px;'>
+                        <input type='checkbox' id='wifi-enable' checked>
+                        <span>启用WiFi客户端模式</span>
+                    </label>
+                </div>
+                
+                <div id='wifi-config-content'>
+                    <!-- 网络扫描部分 -->
+                    <div class='form-group'>
+                        <label>扫描附近网络</label>
+                        <button type='button' class='btn btn-primary' onclick='scanWifiNetworks()' id='scan-btn'>🔍 扫描网络</button>
+                    </div>
+                    
+                    <!-- 网络列表 - 始终显示 -->
+                    <div id='wifi-networks' style='margin-bottom: 15px;'>
+                        <label>网络列表</label>
+                        <div id='network-list' style='height: 200px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 5px; padding: 5px; background-color: var(--card-bg);'>
+                            <div style="text-align: center; padding: 20px; color: #666;">点击"扫描网络"查看附近WiFi</div>
+                        </div>
+                    </div>
+                    
+                    <form id='wifi-form'>
+                        <div class='form-group'>
+                            <label>WiFi名称</label>
+                            <input type='text' id='wifi-ssid-input' placeholder='输入WiFi名称或从上方列表选择'>
+                        </div>
+                        <div class='form-group'>
+                            <label>WiFi密码</label>
+                            <input type='password' id='wifi-password-input' placeholder='输入WiFi密码'>
+                        </div>
+                        <button type='submit' class='btn btn-primary'>连接WiFi</button>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- AP配置 -->
+            <div class='card'>
+                <h2>🔧 AP配置</h2>
+                
+                <div class='form-group'>
+                    <label style='display: flex; align-items: center; gap: 10px;'>
+                        <input type='checkbox' id='ap-enable' checked>
+                        <span>启用AP热点模式</span>
+                    </label>
+                </div>
+                
+                <div id='ap-config-content'>
+                    <form id='ap-form'>
+                        <div class='form-group'>
+                            <label>AP名称</label>
+                            <input type='text' id='ap-ssid-input' placeholder='输入AP名称'>
+                        </div>
+                        <div class='form-group'>
+                            <label>AP密码</label>
+                            <input type='password' id='ap-password-input' placeholder='输入AP密码(至少8位)'>
+                        </div>
+                        <div class='form-group'>
+                            <label>AP IP地址</label>
+                            <input type='text' id='ap-ip-input' placeholder='例如: 192.168.4.1' value='192.168.4.1'>
+                        </div>
+                        <div class='form-group'>
+                            <label>默认网关</label>
+                            <input type='text' id='ap-gateway-input' placeholder='例如: 192.168.4.1' value='192.168.4.1'>
+                        </div>
+                        <button type='submit' class='btn btn-primary'>更新AP设置</button>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- 时间配置 -->
+            <div class='card'>
+                <h2>🕐 时间配置</h2>
+                <form id='time-form'>
+                    <div class='form-group'>
+                        <label>NTP服务器</label>
+                        <input type='text' id='ntp-server-input' value='ntp.ntsc.ac.cn'>
+                    </div>
+                    
+                    <div class='form-group'>
+                        <label style='display: flex; align-items: center; gap: 10px;'>
+                            <input type='checkbox' id='ntp-auto-sync' checked>
+                            <span>启用NTP自动校准</span>
+                        </label>
+                    </div>
+                    
+                    <div class='form-group' id='ntp-interval-group'>
+                        <label>校准间隔 (分钟)</label>
+                        <div style='display: flex; gap: 10px; align-items: center;'>
+                            <input type='number' id='ntp-interval-input' value='60' min='1' max='1440' placeholder='输入分钟数' style='flex: 1;'>
+                            <span style='color: #666; font-size: 12px; white-space: nowrap;'>1-1440分钟</span>
+                        </div>
+                    </div>
+                    
+                    <button type='button' class='btn btn-secondary' onclick='saveNTPSettings()'>保存NTP设置</button>
+                    
+                    <button type='button' class='btn btn-primary' onclick='syncNTP()'>立即同步NTP时间</button>
+                    
+                    <hr style='margin: 20px 0;'>
+                    
+                    <div class='form-group'>
+                        <label>时区设置</label>
+                        <select id='timezone-select' onchange='updateTimezoneOffset()'>
+                            <!-- 按时间偏移排序，从东到西 -->
+                            <option value='39600' data-name='Pacific/Auckland'>奥克兰 (UTC+12)</option>
+                            <option value='36000' data-name='Australia/Sydney'>悉尼 (UTC+10)</option>
+                            <option value='32400' data-name='Asia/Tokyo'>东京 (UTC+9)</option>
+                            <option value='32400' data-name='Australia/Brisbane'>布里斯班 (UTC+9)</option>
+                            <option value='28800' data-name='Asia/Shanghai'>北京 (UTC+8)</option>
+                            <option value='28800' data-name='Australia/Perth'>珀斯 (UTC+8)</option>
+                            <option value='25200' data-name='Asia/Bangkok'>曼谷 (UTC+7)</option>
+                            <option value='21600' data-name='Asia/Dhaka'>达卡 (UTC+6)</option>
+                            <option value='19800' data-name='Asia/Kolkata'>印度 (UTC+5:30)</option>
+                            <option value='16200' data-name='Asia/Kolkata'>印度 (UTC+4:30)</option>
+                            <option value='14400' data-name='Asia/Dubai'>迪拜 (UTC+4)</option>
+                            <option value='12600' data-name='Asia/Tehran'>德黑兰 (UTC+3:30)</option>
+                            <option value='10800' data-name='Europe/Moscow'>莫斯科 (UTC+3)</option>
+                            <option value='7200' data-name='Europe/Paris'>巴黎 (UTC+2)</option>
+                            <option value='7200' data-name='Europe/Rome'>罗马 (UTC+2)</option>
+                            <option value='7200' data-name='Europe/Madrid'>马德里 (UTC+2)</option>
+                            <option value='7200' data-name='Europe/Berlin'>柏林 (UTC+2)</option>
+                            <option value='7200' data-name='Africa/Cairo'>开罗 (UTC+2)</option>
+                            <option value='3600' data-name='Europe/Amsterdam'>阿姆斯特丹 (UTC+1)</option>
+                            <option value='3600' data-name='Europe/Brussels'>布鲁塞尔 (UTC+1)</option>
+                            <option value='3600' data-name='Europe/London'>伦敦 (UTC+1)</option>
+                            <option value='3600' data-name='Africa/Lagos'>拉各斯 (UTC+1)</option>
+                            <option value='0' data-name='UTC'>UTC (UTC+0)</option>
+                            <option value='0' data-name='Europe/Dublin'>都柏林 (UTC+0)</option>
+                            <option value='0' data-name='Africa/Casablanca'>卡萨布兰卡 (UTC+0)</option>
+                            <option value='-3600' data-name='Atlantic/Azores'>亚速尔 (UTC-1)</option>
+                            <option value='-10800' data-name='America/Sao_Paulo'>圣保罗 (UTC-3)</option>
+                            <option value='-14400' data-name='America/Santiago'>圣地亚哥 (UTC-4)</option>
+                            <option value='-18000' data-name='America/New_York'>纽约 (UTC-5)</option>
+                            <option value='-18000' data-name='America/Toronto'>多伦多 (UTC-5)</option>
+                            <option value='-18000' data-name='America/Lima'>利马 (UTC-5)</option>
+                            <option value='-21600' data-name='America/Chicago'>芝加哥 (UTC-6)</option>
+                            <option value='-25200' data-name='America/Phoenix'>凤凰城 (UTC-7)</option>
+                            <option value='-28800' data-name='America/Denver'>丹佛 (UTC-8)</option>
+                            <option value='-28800' data-name='America/Los_Angeles'>洛杉矶 (UTC-8)</option>
+                            <option value='-28800' data-name='America/Vancouver'>温哥华 (UTC-8)</option>
+                            <option value='-32400' data-name='America/Anchorage'>安克雷奇 (UTC-9)</option>
+                            <option value='-36000' data-name='Pacific/Honolulu'>檀香山 (UTC-10)</option>
+                        </select>
+                    </div>
+                    <button type='button' class='btn btn-secondary' onclick='saveTimezoneSettings()'>保存时区设置</button>
+                    
+                    <hr style='margin: 20px 0;'>
+                    
+                    <div class='form-group'>
+                        <label>手动设置时间</label>
+                        <input type='datetime-local' id='manual-time-input'>
+                    </div>
+                    <div class='btn-group' style='gap: 10px;'>
+                        <button type='button' class='btn btn-primary' onclick='setManualTime()'>设置时间</button>
+                        <button type='button' class='btn btn-secondary' onclick='setBrowserTime()'>使用浏览器时间</button>
+                    </div>
+                </form>
+            </div>
+            
+            <!-- 显示内容选择 -->
+            <div class='card'>
+                <h2>📺 显示内容选择</h2>
+                <div class='form-group'>
+                    <label>选择显示内容</label>
+                    <select id='display-content-select' onchange='updateDisplayContent()'>
+                        <option value='time'>时间</option>
+                        <option value='bmp580_temperature'>BMP580温度</option>
+                        <option value='bmp580_pressure'>BMP580气压</option>
+                        <option value='aht20_temperature'>AHT20温度</option>
+                        <option value='aht20_humidity'>AHT20湿度</option>
+                        <option value='custom'>自定义内容</option>
+                    </select>
+                </div>
+                <div class='form-group' id='custom-content-group' style='display: none;'>
+                    <label>自定义显示内容</label>
+                    <input type='text' id='custom-content-input' placeholder='输入要显示的内容' maxlength='8'>
+                </div>
+                <div class='form-group'>
+                    <label>刷新率设置</label>
+                    <select id='refresh-rate-select' onchange='updateRefreshRate()'>
+                        <option value='minute'>分跳变 (1次/分钟)</option>
+                        <option value='1' selected>1Hz (1次/秒)</option>
+                        <option value='2'>2Hz (2次/秒)</option>
+                        <option value='5'>5Hz (5次/秒)</option>
+                        <option value='10'>10Hz (10次/秒)</option>
+                    </select>
+                </div>
+                <button type='button' class='btn btn-primary' onclick='applyDisplayContent()'>应用显示设置</button>
+            </div>
+            
+            <!-- 系统操作 -->
+            <div class='card'>
+                <h2>⚙️ 系统操作</h2>
+                <div class='btn-group'>
+                    <button class='btn btn-success' onclick='showRebootModal()'>🔄 重启系统</button>
+                    <button class='btn btn-danger' onclick='showFactoryResetModal()'>⚠️ 恢复出厂设置</button>
+                </div>
+                
+                <!-- 电池管理 -->
+                <div style='margin-top: 20px;'>
+                    <h3>🔋 电池管理</h3>
+                    <div class='btn-group' style='margin-bottom: 15px;'>
+                        <button class='btn btn-warning' onclick='showResetBatteryModal()'>🔄 复位电量计</button>
+                    </div>
+                    
+                    <div class='form-group'>
+                        <label for='battery-capacity'>电池容量设置 (mAh):</label>
+                        <div style='display: flex; gap: 10px; align-items: center;'>
+                            <input type='number' id='battery-capacity' class='form-control' placeholder='请输入电池容量' min='100' max='10000' style='flex: 1;'>
+                            <button class='btn btn-primary' onclick='showSetBatteryCapacityModal()'>设置容量</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 重启确认模态框 -->
+    <div id='reboot-modal' class='modal'>
+        <div class='modal-content'>
+            <div class='modal-header'>
+                <h3>确认重启</h3>
+                <p>您确定要重启系统吗？</p>
+            </div>
+            <div class='modal-footer'>
+                <button class='btn btn-primary' onclick='hideModal("reboot-modal")'>取消</button>
+                <button class='btn btn-success' onclick='confirmReboot()'>确认重启</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- 恢复出厂设置确认模态框 -->
+    <div id='factory-reset-modal' class='modal'>
+        <div class='modal-content'>
+            <div class='modal-header'>
+                <h3>⚠️ 警告</h3>
+                <p>恢复出厂设置将清除所有配置，包括：</p>
+                <ul style='margin-top: 10px; padding-left: 20px;'>
+                    <li>WiFi配置</li>
+                    <li>AP设置</li>
+                    <li>时间设置</li>
+                    <li>运行时间记录</li>
+                </ul>
+                <p style='margin-top: 10px; color: var(--danger-color);'>此操作不可恢复！</p>
+            </div>
+            <div class='modal-footer'>
+                <button class='btn btn-primary' onclick='hideModal("factory-reset-modal")'>取消</button>
+                <button class='btn btn-danger' onclick='confirmFactoryReset()'>确认恢复</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 复位电量计确认模态框 -->
+    <div id='reset-battery-modal' class='modal'>
+        <div class='modal-content'>
+            <div class='modal-header'>
+                <h3>🔄 复位电量计</h3>
+                <p>您确定要复位电量计吗？</p>
+                <p style='margin-top: 10px; color: var(--warning-color);'>此操作将重置电池电量计的校准数据。</p>
+            </div>
+            <div class='modal-footer'>
+                <button class='btn btn-primary' onclick='hideModal("reset-battery-modal")'>取消</button>
+                <button class='btn btn-warning' onclick='confirmResetBattery()'>确认复位</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 设置电池容量确认模态框 -->
+    <div id='set-battery-capacity-modal' class='modal'>
+        <div class='modal-content'>
+            <div class='modal-header'>
+                <h3>🔋 设置电池容量</h3>
+                <p>您确定要设置电池容量为 <span id='capacity-value'></span> mAh 吗？</p>
+                <p style='margin-top: 10px; color: var(--warning-color);'>此操作将更新电池管理芯片的设计容量参数。</p>
+            </div>
+            <div class='modal-footer'>
+                <button class='btn btn-primary' onclick='hideModal("set-battery-capacity-modal")'>取消</button>
+                <button class='btn btn-primary' onclick='confirmSetBatteryCapacity()'>确认设置</button>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        let systemData = {};
+        let isInitialLoad = true; // 标记是否为初始加载
+        
+        // 显示/隐藏密码
+        function togglePassword(id) {
+            const elem = document.getElementById(id);
+            const wrapper = elem.parentElement;
+            const toggleBtn = wrapper.querySelector('.password-toggle');
+            const isHidden = elem.getAttribute('data-hidden') === 'true';
+            
+            if (isHidden) {
+                elem.textContent = systemData.ap_password || '12345678';
+                elem.setAttribute('data-hidden', 'false');
+                toggleBtn.textContent = '👁️'; // 显示图标
+            } else {
+                elem.textContent = '********';
+                elem.setAttribute('data-hidden', 'true');
+                toggleBtn.textContent = '🙈'; // 隐藏图标
+            }
+        }
+        
+
+        
+        // 更新RTC时间显示 - 使用系统数据中的RTC时间
+        function updateRTCTime() {
+            // 如果系统数据中有RTC时间，使用系统数据
+            if (systemData.current_rtc_time && systemData.current_rtc_time !== '--:--:--') {
+                document.getElementById('rtc-time').textContent = systemData.current_rtc_time;
+            } else {
+                // 如果没有系统数据，显示占位符
+                document.getElementById('rtc-time').textContent = '--:--:--';
+            }
+        }
+        
+        // 启动RTC时间更新
+        function startSyncedTimeUpdate() {
+            // 立即更新一次
+            updateRTCTime();
+            
+            // 每秒更新一次RTC时间显示
+            setInterval(updateRTCTime, 1000);
+        }
+        
+        // 启动与时间同步的数据刷新
+        function startSyncedDataUpdate() {
+            let lastSecond = -1;
+            let lastMinute = -1;
+            let currentWakeupMode = 0; // 默认为秒跳变模式
+            let customRefreshRate = '1'; // 默认1Hz
+            let customRefreshInterval = null;
+            let lastCustomUpdate = 0;
+            
+            function syncedUpdate() {
+                const now = new Date();
+                const currentSecond = now.getSeconds();
+                const currentMinute = now.getMinutes();
+                const currentTime = now.getTime();
+                
+                // 根据唤醒模式和自定义刷新率决定更新频率
+                if (currentWakeupMode === 0) {
+                    // 秒跳变模式：根据自定义刷新率更新数据
+                    if (customRefreshRate === 'minute') {
+                        // 分跳变
+                        if (lastMinute !== -1 && lastMinute !== currentMinute) {
+                            fetchData();
+                            console.log('分钟跳变，更新数据，当前时间:', now.toLocaleTimeString());
+                        }
+                    } else {
+                        // 高频率刷新 (2Hz, 5Hz, 10Hz)
+                        const rate = parseInt(customRefreshRate);
+                        if (rate > 1) {
+                            const interval = 1000 / rate; // 计算间隔时间
+                            if (currentTime - lastCustomUpdate >= interval) {
+                                fetchData();
+                                lastCustomUpdate = currentTime;
+                            }
+                        } else {
+                            // 1Hz：每秒更新
+                            if (lastSecond !== -1 && lastSecond !== currentSecond) {
+                                fetchData();
+                            }
+                        }
+                    }
+                } else if (currentWakeupMode === 1) {
+                    // 分跳变模式：每分钟更新数据
+                    if (lastMinute !== -1 && lastMinute !== currentMinute) {
+                        fetchData();
+                        console.log('分钟跳变，更新数据，当前时间:', now.toLocaleTimeString());
+                    }
+                }
+                
+                lastSecond = currentSecond;
+                lastMinute = currentMinute;
+            }
+            
+            // 更新唤醒模式的函数
+            window.updateWakeupMode = function(mode) {
+                currentWakeupMode = mode;
+                console.log('数据刷新模式已切换为:', mode === 0 ? '秒跳变' : '分跳变');
+            };
+            
+            // 更新自定义刷新率的函数
+            window.updateDataRefreshRate = function(rate) {
+                customRefreshRate = rate;
+                lastCustomUpdate = 0; // 重置计时器
+                console.log('自定义刷新率已切换为:', rate);
+            };
+            
+            // 使用高频率检查来捕获精确的时间跳变
+            setInterval(syncedUpdate, 50); // 每50ms检查一次，支持更高频率
+        }
+        
+        // 显示提示（仅用于用户操作反馈，不用于系统错误）
+        function showAlert(message, type = 'success') {
+            const alert = document.getElementById('alert');
+            alert.className = `alert alert-${type}`;
+            alert.textContent = message;
+            alert.style.display = 'block';
+            setTimeout(() => {
+                alert.style.display = 'none';
+            }, 3000);
+        }
+        
+        // 显示简短的状态提示（不影响布局）
+        function showToast(message, type = 'info') {
+            // 在状态栏显示简短提示，而不是显示大的alert框
+            const statusText = document.getElementById('system-status');
+            const originalText = statusText.textContent;
+            
+            statusText.textContent = message;
+            setTimeout(() => {
+                // 如果连接正常，恢复原始状态文本
+                if (type !== 'error') {
+                    statusText.textContent = originalText;
+                }
+            }, 2000);
+        }
+        
+        // 模态框控制
+        function showRebootModal() {
+            document.getElementById('reboot-modal').style.display = 'block';
+        }
+        
+        function showFactoryResetModal() {
+            document.getElementById('factory-reset-modal').style.display = 'block';
+        }
+        
+        function showResetBatteryModal() {
+            document.getElementById('reset-battery-modal').style.display = 'block';
+        }
+        
+        function showSetBatteryCapacityModal() {
+            const capacityInput = document.getElementById('battery-capacity');
+            const capacity = capacityInput.value;
+            
+            if (!capacity || capacity < 100 || capacity > 10000) {
+                alert('请输入有效的电池容量 (100-10000 mAh)');
+                return;
+            }
+            
+            document.getElementById('capacity-value').textContent = capacity;
+            document.getElementById('set-battery-capacity-modal').style.display = 'block';
+        }
+        
+        function hideModal(id) {
+            document.getElementById(id).style.display = 'none';
+        }
+        
+        // 更新连接状态
+        function updateConnectionStatus(connected) {
+            const statusText = document.getElementById('system-status');
+            const statusDot = document.querySelector('.status-dot');
+            
+            if (connected) {
+                statusText.textContent = '系统运行中';
+                statusDot.style.background = 'var(--success-color)';
+                statusDot.style.animation = 'pulse 2s infinite';
+            } else {
+                statusText.textContent = '连接断开';
+                statusDot.style.background = 'var(--danger-color)';
+                statusDot.style.animation = 'none';
+            }
+        }
+        
+        // API调用
+        async function fetchData() {
+            try {
+                const response = await fetch('/api/system-info');
+                const data = await response.json();
+                systemData = data;
+                updateUI(data);
+                updateConnectionStatus(true);
+            } catch (error) {
+                console.error('获取数据失败:', error);
+                // 静默处理错误，不显示弹窗，保持页面布局不变
+                // 可以选择在控制台记录错误或在状态栏显示离线状态
+                updateConnectionStatus(false);
+            }
+        }
+        
+        // NTP设置保存
+        async function saveNTPSettings() {
+            const server = document.getElementById('ntp-server-input').value;
+            const autoSync = document.getElementById('ntp-auto-sync').checked;
+            const intervalMinutes = parseInt(document.getElementById('ntp-interval-input').value) || 60;
+            const intervalSeconds = intervalMinutes * 60; // 转换为秒
+            
+            if (!server.trim()) {
+                showAlert('请输入NTP服务器地址', 'error');
+                return;
+            }
+            
+            if (intervalMinutes < 1 || intervalMinutes > 43200) {
+                showAlert('校准间隔必须在1-43200分钟之间', 'error');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/ntp-config', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        server: server,
+                        auto_sync: autoSync,
+                        interval: intervalSeconds
+                    })
+                });
+                
+                const result = await response.json();
+                if (result.success) {
+                    showAlert('NTP设置已保存', 'success');
+                    // 立即刷新数据显示更新后的配置
+                    setTimeout(fetchData, 500);
+                } else {
+                    showAlert('保存失败: ' + result.message, 'error');
+                }
+            } catch (error) {
+                console.error('保存NTP设置失败:', error);
+                showAlert('保存失败: 网络错误', 'error');
+            }
+        }
+        
+        // NTP立即同步
+        async function syncNTP() {
+            const syncBtn = event.target;
+            const originalText = syncBtn.innerHTML;
+            
+            syncBtn.innerHTML = '🔄 同步中...';
+            syncBtn.disabled = true;
+            
+            try {
+                const response = await fetch('/api/ntp-sync', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({})
+                });
+                
+                const result = await response.json();
+                if (result.success) {
+                    showAlert(result.message, 'success');
+                    // 同步完成后立即刷新显示
+                    setTimeout(fetchData, 1000);
+                } else {
+                    showAlert(result.message, 'error');
+                }
+            } catch (error) {
+                console.error('NTP同步失败:', error);
+                showAlert('同步失败: 网络错误', 'error');
+            }
+            
+            syncBtn.innerHTML = originalText;
+            syncBtn.disabled = false;
+        }
+        
+        function updateUI(data) {
+            // 更新唤醒模式（同步数据刷新频率）
+            if (data.wakeup_mode !== undefined && window.updateWakeupMode) {
+                window.updateWakeupMode(data.wakeup_mode);
+            }
+            
+            // 更新系统状态中的显示信息（从系统内部获取）
+            if (data.current_display_content !== undefined) {
+                // 创建英文到中文的映射
+                const displayContentMap = {
+                    'time': '时间',
+                    'bmp580_temperature': 'BMP580温度',
+                    'bmp580_pressure': 'BMP580气压',
+                    'aht20_temperature': 'AHT20温度',
+                    'aht20_humidity': 'AHT20湿度',
+                    'custom': '自定义内容'
+                };
+                
+                // 使用映射转换为中文显示，如果没有找到映射则使用原值
+                const displayText = displayContentMap[data.current_display_content] || data.current_display_content;
+                document.getElementById('current-display-content').textContent = displayText;
+            }
+            if (data.current_refresh_rate !== undefined) {
+                document.getElementById('current-refresh-rate').textContent = data.current_refresh_rate;
+            }
+            
+            // 更新时间信息 (RTC时间由独立的定时器更新)
+                            document.getElementById('last-calibration').textContent = data.last_calibration_time || '从未校准';
+                document.getElementById('ntp-server').textContent = data.ntp_server || 'ntp.ntsc.ac.cn';
+                document.getElementById('runtime').textContent = data.total_runtime || '0000H00M';
+                
+                // 更新RTC时间显示
+                if (data.current_rtc_time && data.current_rtc_time !== '--:--:--') {
+                    document.getElementById('rtc-time').textContent = data.current_rtc_time;
+                }
+                
+                // 更新时区显示
+                if (data.timezone_name && data.timezone_offset_sec !== undefined) {
+                    const hours = Math.floor(data.timezone_offset_sec / 3600);
+                    const sign = hours >= 0 ? '+' : '';
+                    const timezoneText = `${data.timezone_name} (UTC${sign}${hours})`;
+                    document.getElementById('timezone').textContent = timezoneText;
+                }
+            
+            // 更新系统状态 - 使用真实数据并添加颜色指示
+            const batteryPercent = data.battery_percentage || 0;
+            document.getElementById('battery-percent').textContent = batteryPercent + '%';
+            const batteryProgress = document.getElementById('battery-progress');
+            batteryProgress.style.width = batteryPercent + '%';
+            // 电量颜色指示
+            if (batteryPercent > 60) {
+                batteryProgress.style.backgroundColor = '#4CAF50'; // 绿色
+            } else if (batteryPercent > 30) {
+                batteryProgress.style.backgroundColor = '#FF9800'; // 橙色
+            } else {
+                batteryProgress.style.backgroundColor = '#F44336'; // 红色
+            }
+            
+            document.getElementById('battery-voltage').textContent = data.battery_voltage + 'mV';
+            
+            // 更新电池电流，显示充电/放电状态
+            const batteryCurrent = data.battery_current || 0;
+            const currentElement = document.getElementById('battery-current');
+            if (batteryCurrent > 0) {
+                currentElement.textContent = '+' + batteryCurrent + 'mA (充电)';
+                currentElement.style.color = '#4CAF50'; // 绿色表示充电
+            } else if (batteryCurrent < 0) {
+                currentElement.textContent = batteryCurrent + 'mA (放电)';
+                currentElement.style.color = '#FF9800'; // 橙色表示放电
+            } else {
+                currentElement.textContent = '0mA (待机)';
+                currentElement.style.color = '#666666'; // 灰色表示待机
+            }
+            
+            const cpuUsage = data.cpu_usage || 0;
+            document.getElementById('cpu-usage').textContent = cpuUsage + '%';
+            const cpuProgress = document.getElementById('cpu-progress');
+            cpuProgress.style.width = cpuUsage + '%';
+            // CPU使用率颜色指示
+            if (cpuUsage < 50) {
+                cpuProgress.style.backgroundColor = '#4CAF50'; // 绿色
+            } else if (cpuUsage < 80) {
+                cpuProgress.style.backgroundColor = '#FF9800'; // 橙色
+            } else {
+                cpuProgress.style.backgroundColor = '#F44336'; // 红色
+            }
+            
+            const memoryUsage = data.memory_usage || 0;
+            document.getElementById('memory-usage').textContent = memoryUsage + '%';
+            const memoryProgress = document.getElementById('memory-progress');
+            memoryProgress.style.width = memoryUsage + '%';
+            // 内存使用率颜色指示
+            if (memoryUsage < 70) {
+                memoryProgress.style.backgroundColor = '#4CAF50'; // 绿色
+            } else if (memoryUsage < 90) {
+                memoryProgress.style.backgroundColor = '#FF9800'; // 橙色
+            } else {
+                memoryProgress.style.backgroundColor = '#F44336'; // 红色
+            }
+            
+            const flashUsage = data.flash_usage || 0;
+            document.getElementById('flash-usage').textContent = flashUsage + '%';
+            const flashProgress = document.getElementById('flash-progress');
+            flashProgress.style.width = flashUsage + '%';
+            // Flash使用率颜色指示
+            if (flashUsage < 80) {
+                flashProgress.style.backgroundColor = '#4CAF50'; // 绿色
+            } else if (flashUsage < 95) {
+                flashProgress.style.backgroundColor = '#FF9800'; // 橙色
+            } else {
+                flashProgress.style.backgroundColor = '#F44336'; // 红色
+            }
+            
+            // 更新传感器数据
+            document.getElementById('bmp580-temperature').textContent = data.bmp580_temperature ? data.bmp580_temperature.toFixed(1) + '°C' : '--';
+            document.getElementById('bmp580-pressure').textContent = data.bmp580_pressure ? data.bmp580_pressure.toFixed(1) + 'hPa' : '--';
+            document.getElementById('aht20-temperature').textContent = data.aht20_temperature ? data.aht20_temperature.toFixed(1) + '°C' : '--';
+            document.getElementById('aht20-humidity').textContent = data.aht20_humidity ? data.aht20_humidity.toFixed(1) + '%' : '--';
+            
+            // 更新网络信息
+            document.getElementById('ap-ssid').textContent = data.ap_ssid || 'NixieClock';
+            document.getElementById('ap-ip').textContent = data.ap_ip_address || '192.168.4.1';
+            document.getElementById('ap-gateway').textContent = data.ap_gateway || '192.168.4.1';
+            document.getElementById('wifi-ssid').textContent = data.sta_connected ? data.sta_ssid : '未连接';
+            document.getElementById('sta-ip').textContent = data.sta_ip_address || '--';
+            
+            // 仅在初始加载时更新表单默认值
+            if (isInitialLoad) {
+                document.getElementById('wifi-enable').checked = data.wifi_enabled !== false;
+                document.getElementById('ap-enable').checked = data.ap_enabled !== false;
+                
+                // 加载AP配置的所有信息
+                document.getElementById('ap-ssid-input').value = data.ap_ssid || 'NixieClock';
+                document.getElementById('ap-password-input').value = data.ap_password || '12345678';
+                document.getElementById('ap-ip-input').value = data.ap_ip_address || '192.168.4.1';
+                document.getElementById('ap-gateway-input').value = data.ap_gateway || '192.168.4.1';
+                
+                // 如果有保存的WiFi配置，也加载到输入框（仅SSID，密码为空）
+                if (data.sta_ssid && data.sta_ssid !== '未连接') {
+                    document.getElementById('wifi-ssid-input').value = data.sta_ssid;
+                    // 密码留空，用户需要重新输入
+                    document.getElementById('wifi-password-input').value = '';
+                }
+                
+                document.getElementById('ntp-server-input').value = data.ntp_server || 'ntp.ntsc.ac.cn';
+                document.getElementById('ntp-auto-sync').checked = data.ntp_auto_sync !== false;
+                // 将秒转换为分钟显示
+                const intervalMinutes = data.ntp_sync_interval ? Math.round(data.ntp_sync_interval / 60) : 60;
+                document.getElementById('ntp-interval-input').value = intervalMinutes;
+                
+                // 设置时区选择
+                const timezoneSelect = document.getElementById('timezone-select');
+                if (timezoneSelect && data.timezone_offset_sec !== undefined) {
+                    timezoneSelect.value = data.timezone_offset_sec.toString();
+                }
+                
+                // 设置当前时间到手动时间输入框（仅在初始加载时）
+                const now = new Date();
+                const localDateTime = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+                document.getElementById('manual-time-input').value = localDateTime;
+                
+                // 控制显示状态
+                const wifiContent = document.getElementById('wifi-config-content');
+                const apContent = document.getElementById('ap-config-content');
+                const intervalGroup = document.getElementById('ntp-interval-group');
+                
+                wifiContent.style.display = document.getElementById('wifi-enable').checked ? 'block' : 'none';
+                apContent.style.display = document.getElementById('ap-enable').checked ? 'block' : 'none';
+                intervalGroup.style.display = document.getElementById('ntp-auto-sync').checked ? 'block' : 'none';
+                
+                // 标记初始加载完成
+                isInitialLoad = false;
+            }
+        }
+        
+        // WiFi网络扫描
+        async function scanWifiNetworks() {
+            const scanBtn = document.getElementById('scan-btn');
+            const originalText = scanBtn.innerHTML;
+            
+            scanBtn.innerHTML = '🔄 扫描中...';
+            scanBtn.disabled = true;
+            
+            try {
+                const response = await fetch('/api/wifi/scan');
+                const data = await response.json();
+                
+                if (data.success && data.networks) {
+                    displayWifiNetworks(data.networks);
+                    showToast(`发现 ${data.networks.length} 个网络`, 'info');
+                } else {
+                    showAlert('扫描失败: ' + (data.message || '未知错误'), 'error');
+                    // 显示空列表
+                    document.getElementById('network-list').innerHTML = 
+                        '<div style="text-align: center; padding: 20px; color: #666;">扫描失败，请重试</div>';
+                }
+            } catch (error) {
+                console.error('扫描网络失败:', error);
+                showAlert('扫描失败: 网络连接错误', 'error');
+                document.getElementById('network-list').innerHTML = 
+                    '<div style="text-align: center; padding: 20px; color: #666;">网络连接错误，请检查设备连接</div>';
+            }
+            
+            scanBtn.innerHTML = originalText;
+            scanBtn.disabled = false;
+        }
+        
+        // 显示WiFi网络列表
+        function displayWifiNetworks(networks) {
+            const networkList = document.getElementById('network-list');
+            
+            if (!networks || networks.length === 0) {
+                networkList.innerHTML = '<div style="text-align: center; padding: 20px; color: #666;">未找到网络</div>';
+                return;
+            }
+            
+            // 按信号强度排序
+            networks.sort((a, b) => b.rssi - a.rssi);
+            
+            networkList.innerHTML = '';
+            networks.forEach(network => {
+                const networkItem = document.createElement('div');
+                networkItem.className = 'network-item';
+                networkItem.onclick = () => selectNetwork(network.ssid, networkItem);
+                
+                const signalBars = createSignalBars(network.rssi);
+                const securityIcon = network.security === 'Open' ? '🔓' : '🔒';
+                
+                networkItem.innerHTML = `
+                    <div>
+                        <div class="network-ssid">${network.ssid}</div>
+                        <div class="network-info">
+                            <span class="security-icon">${securityIcon}</span>
+                            <span>${network.security}</span>
+                            <span>信道 ${network.channel}</span>
+                        </div>
+                    </div>
+                    <div class="signal-strength">
+                        ${signalBars}
+                        <span style="margin-left: 5px; font-size: 11px;">${network.rssi}dBm</span>
+                    </div>
+                `;
+                
+                networkList.appendChild(networkItem);
+            });
+        }
+        
+        // 创建信号强度指示条
+        function createSignalBars(rssi) {
+            const bars = [];
+            const strength = getSignalStrength(rssi);
+            
+            for (let i = 0; i < 4; i++) {
+                const height = 4 + i * 3;
+                const active = i < strength ? 'active' : '';
+                bars.push(`<div class="signal-bar ${active}" style="height: ${height}px;"></div>`);
+            }
+            
+            return bars.join('');
+        }
+        
+        // 根据RSSI计算信号强度等级
+        function getSignalStrength(rssi) {
+            if (rssi >= -50) return 4;
+            if (rssi >= -60) return 3;
+            if (rssi >= -70) return 2;
+            if (rssi >= -80) return 1;
+            return 0;
+        }
+        
+        // 选择网络
+        function selectNetwork(ssid, element) {
+            // 移除其他选中状态
+            document.querySelectorAll('.network-item').forEach(item => {
+                item.classList.remove('selected');
+            });
+            
+            // 添加选中状态
+            element.classList.add('selected');
+            
+            // 填充到输入框
+            document.getElementById('wifi-ssid-input').value = ssid;
+        }
+        
+        // 表单提交处理
+        document.getElementById('wifi-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const enabled = document.getElementById('wifi-enable').checked;
+            const ssid = document.getElementById('wifi-ssid-input').value;
+            const password = document.getElementById('wifi-password-input').value;
+            
+            if (enabled && !ssid) {
+                showAlert('请输入WiFi名称', 'error');
+                return;
+            }
+            
+            // 显示连接进度
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.innerHTML = enabled ? '🔄 连接中...' : '🔄 断开中...';
+            submitBtn.disabled = true;
+            
+            try {
+                const response = await fetch('/api/wifi-config', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        enabled: enabled,
+                        ssid: ssid, 
+                        password: password 
+                    })
+                });
+                const result = await response.json();
+                
+                if (result.success) {
+                    showAlert(result.message, 'success');
+                    // 连接成功后刷新网络状态
+                    setTimeout(fetchData, 2000);
+                } else {
+                    showAlert(result.message || 'WiFi配置失败', 'error');
+                }
+            } catch (error) {
+                console.error('WiFi配置失败:', error);
+                showAlert('WiFi配置失败: 网络错误', 'error');
+            }
+            
+            submitBtn.innerHTML = originalText;
+            submitBtn.disabled = false;
+        });
+        
+        document.getElementById('ap-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const enabled = document.getElementById('ap-enable').checked;
+            const ssid = document.getElementById('ap-ssid-input').value;
+            const password = document.getElementById('ap-password-input').value;
+            const ip = document.getElementById('ap-ip-input').value;
+            const gateway = document.getElementById('ap-gateway-input').value;
+            
+            if (enabled && !ssid) {
+                showAlert('请输入AP名称', 'error');
+                return;
+            }
+            
+            if (enabled && password && password.length < 8) {
+                showAlert('AP密码至少需要8位', 'error');
+                return;
+            }
+            
+            // 验证IP地址格式
+            const ipPattern = /^(\d{1,3}\.){3}\d{1,3}$/;
+            if (enabled && !ipPattern.test(ip)) {
+                showAlert('请输入有效的IP地址', 'error');
+                return;
+            }
+            
+            if (enabled && !ipPattern.test(gateway)) {
+                showAlert('请输入有效的网关地址', 'error');
+                return;
+            }
+            
+            // 显示配置进度
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.innerHTML = enabled ? '🔄 启动中...' : '🔄 关闭中...';
+            submitBtn.disabled = true;
+            
+            try {
+                const response = await fetch('/api/ap-config', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        enabled: enabled,
+                        ssid: ssid, 
+                        password: password,
+                        ip: ip,
+                        gateway: gateway
+                    })
+                });
+                const result = await response.json();
+                
+                if (result.success) {
+                    showAlert(result.message, 'success');
+                    // AP配置成功后刷新网络状态
+                    setTimeout(fetchData, 1000);
+                } else {
+                    showAlert(result.message || 'AP配置失败', 'error');
+                }
+            } catch (error) {
+                console.error('AP配置失败:', error);
+                showAlert('AP配置失败: 网络错误', 'error');
+            }
+            
+            submitBtn.innerHTML = originalText;
+            submitBtn.disabled = false;
+        });
+        
+        // WiFi和AP开关控制
+        document.getElementById('wifi-enable').addEventListener('change', async function() {
+            const wifiContent = document.getElementById('wifi-config-content');
+            wifiContent.style.display = this.checked ? 'block' : 'none';
+            
+            // 立即提交配置更改
+            const enabled = this.checked;
+            if (!enabled) {
+                // 如果禁用WiFi，立即断开连接
+                if (confirm('确定要断开WiFi连接吗？')) {
+                    await submitWifiConfig(false, '', '');
+                } else {
+                    // 如果用户取消，恢复开关状态
+                    this.checked = true;
+                    wifiContent.style.display = 'block';
+                }
+            }
+        });
+        
+        document.getElementById('ap-enable').addEventListener('change', async function() {
+            const apContent = document.getElementById('ap-config-content');
+            apContent.style.display = this.checked ? 'block' : 'none';
+            
+            // 立即提交配置更改
+            const enabled = this.checked;
+            if (!enabled) {
+                // 如果禁用AP，立即关闭热点
+                const wifiConnected = systemData && systemData.sta_connected;
+                let confirmMessage = '确定要关闭AP热点吗？\n\n⚠️ 警告：';
+                
+                if (wifiConnected) {
+                    confirmMessage += '关闭AP后，页面将通过WiFi连接继续访问。\n如果WiFi连接不稳定，可能需要重新连接设备。';
+                } else {
+                    confirmMessage += '关闭AP后，由于WiFi未连接，您将无法继续访问此页面！\n建议先连接WiFi再关闭AP。';
+                }
+                
+                if (confirm(confirmMessage)) {
+                    const success = await submitApConfig(false, '', '', '', '');
+                    if (!success && !wifiConnected) {
+                        // 如果关闭失败且没有WiFi连接，恢复开关状态
+                        this.checked = true;
+                        apContent.style.display = 'block';
+                    }
+                } else {
+                    // 如果用户取消，恢复开关状态
+                    this.checked = true;
+                    apContent.style.display = 'block';
+                }
+            }
+        });
+        
+        // NTP自动校准控制
+        document.getElementById('ntp-auto-sync').addEventListener('change', function() {
+            const intervalGroup = document.getElementById('ntp-interval-group');
+            intervalGroup.style.display = this.checked ? 'block' : 'none';
+        });
+        
+        // 独立的WiFi配置提交函数
+        async function submitWifiConfig(enabled, ssid, password) {
+            try {
+                const response = await fetch('/api/wifi-config', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        enabled: enabled,
+                        ssid: ssid, 
+                        password: password 
+                    })
+                });
+                const result = await response.json();
+                
+                if (result.success) {
+                    showAlert(result.message, 'success');
+                    // 连接成功后刷新网络状态
+                    setTimeout(fetchData, 2000);
+                } else {
+                    showAlert(result.message || 'WiFi配置失败', 'error');
+                }
+                return result.success;
+            } catch (error) {
+                console.error('WiFi配置失败:', error);
+                showAlert('WiFi配置失败: 网络错误', 'error');
+                return false;
+            }
+        }
+        
+        // 独立的AP配置提交函数
+        async function submitApConfig(enabled, ssid, password, ip, gateway) {
+            try {
+                const response = await fetch('/api/ap-config', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        enabled: enabled,
+                        ssid: ssid, 
+                        password: password,
+                        ip: ip,
+                        gateway: gateway
+                    })
+                });
+                const result = await response.json();
+                
+                if (result.success) {
+                    showAlert(result.message, 'success');
+                    // AP配置成功后刷新网络状态
+                    setTimeout(fetchData, 1000);
+                } else {
+                    showAlert(result.message || 'AP配置失败', 'error');
+                }
+                return result.success;
+            } catch (error) {
+                console.error('AP配置失败:', error);
+                showAlert('AP配置失败: 网络错误', 'error');
+                return false;
+            }
+        }
+        
+        // NTP间隔输入验证
+        document.getElementById('ntp-interval-input').addEventListener('input', function() {
+            const value = parseInt(this.value);
+            const isValid = value >= 1 && value <= 1440;
+            
+            if (this.value && !isValid) {
+                this.style.borderColor = 'var(--danger-color)';
+            } else {
+                this.style.borderColor = 'var(--border-color)';
+            }
+        });
+        
+        // 保存NTP设置
+        async function saveNTPSettings() {
+            const server = document.getElementById('ntp-server-input').value;
+            const autoSync = document.getElementById('ntp-auto-sync').checked;
+            const intervalMinutes = document.getElementById('ntp-interval-input').value;
+            
+            if (!server) {
+                showAlert('请输入NTP服务器地址', 'error');
+                return;
+            }
+            
+            if (autoSync && (!intervalMinutes || intervalMinutes < 1 || intervalMinutes > 1440)) {
+                showAlert('校准间隔必须在1-1440分钟之间', 'error');
+                return;
+            }
+            
+            // 将分钟转换为秒
+            const intervalSeconds = autoSync ? parseInt(intervalMinutes) * 60 : 0;
+            
+            try {
+                const response = await fetch('/api/ntp-config', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        server: server,
+                        auto_sync: autoSync,
+                        interval: intervalSeconds,
+                        interval_minutes: parseInt(intervalMinutes)
+                    })
+                });
+                const result = await response.json();
+                showAlert(result.message || 'NTP设置已保存', 'success');
+            } catch (error) {
+                showToast('NTP设置保存失败', 'error');
+            }
+        }
+        
+        async function syncNTP() {
+            const server = document.getElementById('ntp-server-input').value;
+            
+            if (!server) {
+                showAlert('请输入NTP服务器地址', 'error');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/ntp-sync', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ server: server })
+                });
+                const result = await response.json();
+                showAlert(result.message || 'NTP时间同步已启动', 'success');
+            } catch (error) {
+                showToast('NTP同步失败', 'error');
+            }
+        }
+        
+        async function setManualTime() {
+            const datetime = document.getElementById('manual-time-input').value;
+            if (!datetime) {
+                showAlert('请选择时间', 'error');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/manual-time', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ datetime })
+                });
+                const result = await response.json();
+                showAlert(result.message || '时间设置成功', 'success');
+            } catch (error) {
+                showToast('时间设置失败', 'error');
+            }
+        }
+        
+        // 更新时区偏移显示
+        function updateTimezoneOffset() {
+            const timezoneSelect = document.getElementById('timezone-select');
+            const selectedOption = timezoneSelect.options[timezoneSelect.selectedIndex];
+            const offset = parseInt(timezoneSelect.value);
+            const hours = Math.floor(offset / 3600);
+            const sign = hours >= 0 ? '+' : '';
+            console.log(`选择的时区: ${selectedOption.text} (偏移: ${sign}${hours}小时)`);
+        }
+        
+        // 保存时区设置
+        async function saveTimezoneSettings() {
+            const timezoneSelect = document.getElementById('timezone-select');
+            const selectedOption = timezoneSelect.options[timezoneSelect.selectedIndex];
+            const offset = parseInt(timezoneSelect.value);
+            const timezoneName = selectedOption.getAttribute('data-name');
+            
+            try {
+                const response = await fetch('/api/timezone-config', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        timezone_name: timezoneName,
+                        timezone_offset: offset
+                    })
+                });
+                const result = await response.json();
+                showAlert(result.message || '时区设置已保存', 'success');
+                // 刷新数据以更新时区显示
+                setTimeout(fetchData, 1000);
+            } catch (error) {
+                showToast('时区设置保存失败', 'error');
+            }
+        }
+        
+        // 使用浏览器时间校准
+        function setBrowserTime() {
+            const now = new Date();
+            // 转换为本地时间格式，适配datetime-local输入框
+            const localDateTime = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+            
+            // 填充到输入框
+            document.getElementById('manual-time-input').value = localDateTime;
+            
+            // 自动提交设置
+            if (confirm('确定要使用当前浏览器时间 (' + now.toLocaleString() + ') 校准设备时间吗？')) {
+                setManualTime();
+            }
+        }
+        
+        async function confirmReboot() {
+            hideModal('reboot-modal');
+            
+            try {
+                const response = await fetch('/api/reboot', {
+                    method: 'POST'
+                });
+                const result = await response.json();
+                showAlert(result.message || '系统正在重启...', 'success');
+            } catch (error) {
+                showToast('重启失败', 'error');
+            }
+        }
+        
+        async function confirmFactoryReset() {
+            hideModal('factory-reset-modal');
+            
+            try {
+                const response = await fetch('/api/factory-reset', {
+                    method: 'POST'
+                });
+                const result = await response.json();
+                showAlert(result.message || '正在恢复出厂设置...', 'success');
+            } catch (error) {
+                showToast('恢复出厂设置失败', 'error');
+            }
+        }
+        
+        async function confirmResetBattery() {
+            hideModal('reset-battery-modal');
+            
+            try {
+                const response = await fetch('/api/reset-battery', {
+                    method: 'POST'
+                });
+                const result = await response.json();
+                showToast(result.message || '电量计复位成功', 'success');
+            } catch (error) {
+                showToast('电量计复位失败', 'error');
+            }
+        }
+        
+        async function confirmSetBatteryCapacity() {
+            hideModal('set-battery-capacity-modal');
+            const capacity = document.getElementById('battery-capacity').value;
+            
+            try {
+                const response = await fetch('/api/set-battery-capacity', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ capacity: parseInt(capacity) })
+                });
+                const result = await response.json();
+                showToast(result.message || '电池容量设置成功', 'success');
+                // 清空输入框
+                document.getElementById('battery-capacity').value = '';
+            } catch (error) {
+                showToast('电池容量设置失败', 'error');
+            }
+        }
+        
+        // 启动RTC时间同步更新
+        startSyncedTimeUpdate();
+        
+        // 启动与时间同步的数据刷新
+        startSyncedDataUpdate();
+        
+        // 初始加载
+        fetchData();
+        
+        // 初始化显示内容选择
+        updateDisplayContent();
+        document.getElementById('display-content-select').addEventListener('change', updateDisplayContent);
+        
+        // 初始化刷新率选择
+        updateRefreshRate();
+        document.getElementById('refresh-rate-select').addEventListener('change', updateRefreshRate);
+        
+        // 显示内容选择相关函数
+        function updateDisplayContent() {
+            const select = document.getElementById('display-content-select');
+            const customGroup = document.getElementById('custom-content-group');
+            
+            if (select.value === 'custom') {
+                customGroup.style.display = 'block';
+            } else {
+                customGroup.style.display = 'none';
+            }
+        }
+        
+        // 刷新率选择函数
+        function updateRefreshRate() {
+            const select = document.getElementById('refresh-rate-select');
+            const currentRefreshRate = document.getElementById('current-refresh-rate');
+            
+            const refreshRateNames = {
+                'minute': '分跳变 (1次/分钟)',
+                '1': '1Hz (1次/秒)',
+                '2': '2Hz (2次/秒)',
+                '5': '5Hz (5次/秒)',
+                '10': '10Hz (10次/秒)'
+            };
+            
+            currentRefreshRate.textContent = refreshRateNames[select.value] || select.value;
+            
+            // 更新数据刷新机制
+            if (window.updateDataRefreshRate) {
+                window.updateDataRefreshRate(select.value);
+            }
+        }
+        
+        async function applyDisplayContent() {
+            const select = document.getElementById('display-content-select');
+            const customInput = document.getElementById('custom-content-input');
+            const currentDisplay = document.getElementById('current-display-content');
+            const refreshRateSelect = document.getElementById('refresh-rate-select');
+            
+            let displayType = select.value;
+            let customContent = '';
+            
+            if (displayType === 'custom') {
+                customContent = customInput.value.trim();
+                if (!customContent) {
+                    showAlert('请输入自定义显示内容', 'error');
+                    return;
+                }
+                if (customContent.length > 8) {
+                    showAlert('自定义内容不能超过8个字符', 'error');
+                    return;
+                }
+            }
+            
+            try {
+                // 应用显示内容设置
+                const displayResponse = await fetch('/api/display-config', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        display_type: displayType,
+                        custom_content: customContent
+                    })
+                });
+                const displayResult = await displayResponse.json();
+                
+                // 应用刷新率设置
+                const refreshRateResponse = await fetch('/api/refresh-rate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        refresh_rate: refreshRateSelect.value
+                    })
+                });
+                const refreshRateResult = await refreshRateResponse.json();
+                
+                if (displayResult.success && refreshRateResult.success) {
+                    showAlert('显示设置和刷新率设置已应用', 'success');
+                    // 更新当前显示状态
+                    const displayNames = {
+                        'time': '时间',
+                        'bmp580_temperature': 'BMP580温度',
+                        'bmp580_pressure': 'BMP580气压',
+                        'aht20_temperature': 'AHT20温度',
+                        'aht20_humidity': 'AHT20湿度',
+                        'custom': customContent
+                    };
+                    currentDisplay.textContent = displayNames[displayType] || displayType;
+                    
+                    // 立即刷新一次数据
+                    if (typeof fetchData === 'function') {
+                        fetchData();
+                    }
+                } else {
+                    let errorMsg = '';
+                    if (!displayResult.success) {
+                        errorMsg += '显示设置失败: ' + (displayResult.message || '未知错误');
+                    }
+                    if (!refreshRateResult.success) {
+                        if (errorMsg) errorMsg += '; ';
+                        errorMsg += '刷新率设置失败: ' + (refreshRateResult.message || '未知错误');
+                    }
+                    showAlert(errorMsg, 'error');
+                }
+            } catch (error) {
+                console.error('设置失败:', error);
+                showAlert('设置失败: 网络错误', 'error');
+            }
+        }
+        
+        // 点击模态框背景关闭
+        document.querySelectorAll('.modal').forEach(modal => {
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    modal.style.display = 'none';
+                }
+            });
+        });
+    </script>
+</body>
+</html>
