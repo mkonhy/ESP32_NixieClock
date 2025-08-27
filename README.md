@@ -8,10 +8,26 @@
 目前主要的功能已经基本实现，后续电路和软件依然会修改。
 
 ## 原理解析
-电路主要分为三个部分
-1、升压电路
-2、辉光管驱动
-3、MCU、传感器以及附带电源
+电路主要分为三个部分<br></br>
+1、升压电路<br></br>
+![170V升压](README/IN12x4_POWER170V.png)
 
-## 注意事项
-⚠辉光管驱动电压约170v，还没画外壳，手拿请注意安全 
+2、辉光管驱动<br></br>
+①移位寄存器<br></br>
+![移位寄存器](README/IN12x4_74HC595.png)<br></br>
+②辉光管驱动<br></br>
+![辉光管驱动](README/IN12x4.png)<br></br>
+
+3、MCU、传感器以及附带电源<br></br>
+①ESP32C3FH4<br></br>
+![MCU](README/MCU_ESP32C3FH4.png)<br></br>
+②MCU电源<br></br>
+![MCUPOwER](README/IN12x4_MCUPOWER.png)<br></br>
+③外设和传感器<br></br>
+![MCUIIC](README/IN12x4_IIC.png)<br></br>
+
+## 实物图
+正面
+![正面](README/583f23ca429e45988cf8a9439637cc43.jpg)<br></br>
+背面
+![正面](README/b0a3b656c9004847849c36dd8cca443b.jpg)<br></br>
